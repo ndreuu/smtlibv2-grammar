@@ -118,6 +118,9 @@ PS_Unsat
 CMD_Assert
     : 'assert'
     ;
+CMD_Asserted
+    : 'asserted'
+    ;
 CMD_CheckSat
     : 'check-sat'
     ;
@@ -184,6 +187,9 @@ CMD_GetUnsatCore
 CMD_GetValue
     : 'get-value'
     ;
+CMD_Lemma
+    : 'lemma'
+    ;
 CMD_Pop
     : 'pop'
     ;
@@ -205,9 +211,15 @@ CMD_SetLogic
 CMD_SetOption
     : 'set-option'
     ;
-
-
-
+CMD_HyperRes
+    : Sym WS 'hyper-res' (WS Numeral)* 
+    ;
+CMD_Mp
+    : 'mp' 
+    ;
+CMD_Proof
+    : 'proof' 
+    ;
 
 // General reserved words
 
@@ -261,12 +273,24 @@ Binary
     ;
 
 HexDecimal
-    : '#x' HexDigit+
+    : '#x' HexDigit HexDigit HexDigit HexDigit
     ;
 
 Decimal
     : Numeral '.' '0'* Numeral
     ;
+
+//Letter
+//    : [a-zA-Z]
+//    ;
+//
+//Num
+//    : Digit
+//    ;
+//
+//Id
+//    : Letter(Letter|Digit)*
+//    ;
 
 
 
@@ -282,6 +306,8 @@ Colon
 fragment Digit
     : [0-9]
     ;
+
+
 
 fragment Sym
     : 'a'..'z'
@@ -653,6 +679,7 @@ attribute
     : keyword
     | keyword attribute_value
     ;
+    
 
 // Sorts
 
@@ -786,14 +813,19 @@ prop_literal
     | ParOpen PS_Not symbol ParClose
     ;
 
-
 script
     : command*
+    | ParOpen command* ParClose
+    ;
+    
+asserted
+    : ParOpen CMD_Asserted term ParClose
     ;
 
 cmd_assert
     : CMD_Assert
     ;
+
 
 cmd_checkSat
     : CMD_CheckSat
@@ -883,6 +915,10 @@ cmd_getValue
     : CMD_GetValue
     ;
 
+cmd_lemma
+    : CMD_Lemma
+    ;
+
 cmd_pop
     : CMD_Pop
     ;
@@ -911,20 +947,51 @@ cmd_setOption
     : CMD_SetOption
     ;
 
+cmd_hyperRes
+    : CMD_HyperRes
+    ;
+    
+cmd_mp
+    : CMD_Mp
+    ;
+    
+cmd_proof 
+    : CMD_Proof
+    ;
+
+cmd_predicat
+    : identifier
+    ;
+
+args_predicat
+    : term+
+    | ParOpen args_predicat ParClose
+    ;
+//cmd_predicat
+//    : Id
+//    ;
+
+hyper_proof
+    : ParOpen ParOpen cmd_hyperRes ParClose asserted hyper_proof* term ParClose
+    ;
+
+proof 
+    : cmd_mp hyper_proof asserted term
+    ;
+    
 command
-    : ParOpen cmd_assert term ParClose
+    : ParOpen cmd_proof proof ParClose
+    | ParOpen cmd_assert term ParClose
     | ParOpen cmd_checkSat ParClose
     | ParOpen cmd_checkSatAssuming ParClose
     | ParOpen cmd_declareConst symbol sort ParClose
     | ParOpen cmd_declareDatatype symbol datatype_dec ParClose
-    // cardinalitiees for sort_dec and datatype_dec have to be n+1
     | ParOpen cmd_declareDatatypes ParOpen sort_dec+ ParClose ParOpen
     datatype_dec+ ParClose ParClose
     | ParOpen cmd_declareFun symbol ParOpen sort* ParClose sort ParClose
     | ParOpen cmd_declareSort symbol numeral ParClose
     | ParOpen cmd_defineFun function_def ParClose
     | ParOpen cmd_defineFunRec function_def ParClose
-    // cardinalitiees for function_dec and term have to be n+1
     | ParOpen cmd_defineFunsRec ParOpen function_dec+ ParClose
     ParOpen term+ ParClose ParClose
     | ParOpen cmd_defineSort symbol ParOpen symbol* ParClose sort ParClose
@@ -939,6 +1006,7 @@ command
     | ParOpen cmd_getUnsatAssumptions ParClose
     | ParOpen cmd_getUnsatCore ParClose
     | ParOpen cmd_getValue ParOpen term+ ParClose ParClose
+    | ParOpen cmd_lemma symbol ParOpen sorted_var* ParClose term ParClose
     | ParOpen cmd_pop numeral ParClose
     | ParOpen cmd_push numeral ParClose
     | ParOpen cmd_reset ParClose
