@@ -792,6 +792,7 @@ selector_dec
 
 constructor_dec
     : ParOpen symbol selector_dec* ParClose
+    | symbol
     ;
 
 datatype_dec
