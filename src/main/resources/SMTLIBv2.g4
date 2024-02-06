@@ -668,7 +668,6 @@ identifier
     ;
 
 // Attributes
-
 attribute_value
     : spec_constant
     | symbol
@@ -713,9 +712,12 @@ match_case
     : ParOpen pattern term ParClose
     ;
 
+tester: ParOpen '_ is' identifier ParClose;
+
 term
     : spec_constant
     | qual_identifier
+    | ParOpen tester identifier ParClose
     | ParOpen qual_identifier term+ ParClose
     | ParOpen GRW_Let ParOpen var_binding+ ParClose term ParClose
     | ParOpen GRW_Forall ParOpen sorted_var+ ParClose term ParClose
